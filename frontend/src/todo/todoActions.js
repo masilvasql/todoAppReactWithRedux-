@@ -8,10 +8,11 @@ export const changeDescription = (event) => ({
 })
 
 export const search = () => {
-    const request = axios.get(`${URL}?sort=-createdAt`)
-    return {
-        type: 'TODO_SEARCHED',
-        payload: request
+    return(dispatch, getState)=>{
+        const description =getState().todo.description
+        const search = description ? `&description__regex=/${description}/` :''
+        const request = axios.get(`${URL}?sort=-createdAt${search}`)
+        .then(resp=>dispatch({type: 'TODO_SEARCHED',payload: resp.data}))
     }
 }
 
@@ -40,10 +41,10 @@ export const markAsPending = (todo) =>{
 export const remove = (todo)=>{
     return dispatch =>{
         axios.delete(`${URL}/${todo._id}`)
-        .then(resp => dispatch(search()))
+        .then(resp => dispatch(search())) // aqui se utiliza o middleware Multi
     }
 }
 
 export const clear = ()=>{
-    return {type:'TODO_CLEAR'}
+    return [{type:'TODO_CLEAR'},search()] // aqui se utiliza o middleware Thunk
 }
